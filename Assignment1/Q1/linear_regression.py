@@ -12,27 +12,10 @@ class LinearRegressor:
         self.X : np.array = None
         self.y : np.array = None 
         self.theta : np.array = None
-        self.num_iter : int = 1000
-        pass
+        self.num_iter : int = int(1e5)
+        self.eps : float = 0
+        self.loss_data : list = []
     
-    def check_convergence(self, theta, learning_rate):
-        """
-        Check if the gradient descent has converged by checking if the change in the value of the loss function is less than 1e-4.
-        
-        Parameters
-        ----------
-        theta : numpy array of shape (n_features,)
-            The current parameter values.
-            
-        learning_rate : float
-            The learning rate to use in the update rule.
-            
-        Returns
-        -------
-        bool
-            True if the change in the value of the loss function is less than 1e-4, False otherwise.
-        """
-        pass
 
     def fit(self, X, y, learning_rate=0.01):
         """
@@ -60,19 +43,24 @@ class LinearRegressor:
         self.y = y
         self.num_data_points, self.num_features = self.X.shape
         self.theta = np.zeros(self.num_features)
-        print("X: ", self.X.shape)
-        print("y: ", self.y.shape)
-        print("Num data points: ", self.num_data_points)
-        print("Num features: ", self.num_features)
+        # print("X: ", self.X.shape)
+        # print("y: ", self.y.shape)
+        # print("Num data points: ", self.num_data_points)
+        # print("Num features: ", self.num_features)
         n_iter = self.num_iter
         # Gradient Descent
+        prev_loss : float = float('inf')
         for iter in range(n_iter):
             predictions = np.dot(self.X, self.theta)  # Calculate predictions
             errors = predictions - self.y              # Calculate errors
             loss = (1 / (2 * self.num_data_points)) * np.sum(errors ** 2)
-            print(f"Iteration {iter+1} - Loss: {loss}")
+            # print(f"Iteration {iter+1} - Loss: {loss}")
             gradient = (1 / self.num_data_points) * np.dot(self.X.T, errors)  # Compute gradient
-            
+
+            if (abs(prev_loss - loss) < self.eps): # Check for convergence
+                break
+            prev_loss = loss
+            self.loss_data.append([self.theta.copy(),loss])
             # Ensure gradient is 1D and matches the shape of theta
             self.theta -= learning_rate * gradient.flatten()  # Update theta
         
@@ -93,4 +81,8 @@ class LinearRegressor:
         y_pred : numpy array of shape (n_samples,)
             The predicted target values.
         """
-        pass
+        X_pred = np.hstack((np.ones((X.shape[0], 1)), X)) # Add a column of ones to X for the intercept term
+        y_pred = np.dot(X_pred, self.theta)  # Calculate predictions
+        # print("X_pred: ", X_pred.shape)
+        # print("y_pred: ", y_pred.shape)
+        return y_pred

@@ -1,15 +1,67 @@
 from linear_regression import LinearRegressor
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+def q1_2(learning_rate=0.018):
+    X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
+    y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values).flatten()  # Flatten y to 1D array
+    model = LinearRegressor()
+    theta = model.fit(X, y,learning_rate=learning_rate)
+    y_pred = model.predict(X)
+    errors = y_pred - y
+    loss = (1 / (2 * X.shape[0])) * np.sum(errors ** 2)
+    # print(f"eta: {learning_rate} , l: {loss}")
+    y_line = theta[0] + theta[1] * X.flatten()  # Ensure X is flattened for calculation
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    plt.scatter(X, y, color='blue', label='Data Points')  # Plot original data points
+    plt.plot(X, y_line, color='red', label='Hypothesis (Linear Equation)')  # Plot linear equation line
+    plt.title('Linear Regression Fit')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(f'q1_2_{learning_rate}.png')
+    return loss
+
+
+def q1_3(learning_rate=0.018):
+    X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
+    y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values).flatten()  # Flatten y to 1D array
+    model = LinearRegressor()
+    theta = model.fit(X, y,learning_rate=learning_rate)
+    loss_data = model.loss_data
+    theta0 = np.array([item[0][0] for item in loss_data])
+    theta1 = np.array([item[0][1] for item in loss_data])
+    loss = np.array([item[1] for item in loss_data])
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Plotting the data
+    ax.scatter(theta0, theta1, loss, c=loss, cmap='viridis')
+
+    # Adding labels
+    ax.set_xlabel('Theta 0')
+    ax.set_ylabel('Theta 1')
+    ax.set_zlabel('Loss')
+
+    # Show the plot
+    plt.savefig(f'q1_3_{learning_rate}.png')
+
+    
+
+    
+
 
 
 def main():
-    # X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
-    # y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values)
-    X = np.array([[1],[2],[3],[4],[5]])
-    y = np.array([2,4,6,8,10])
-    model = LinearRegressor()
-    theta = model.fit(X, y)
-    print(theta)
+    q1_2()
+    q1_3()
 
+    
+    
+
+    
 main()
