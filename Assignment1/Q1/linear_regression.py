@@ -13,11 +13,12 @@ class LinearRegressor:
         self.y : np.array = None 
         self.theta : np.array = None
         self.num_iter : int = int(1e5)
-        self.eps : float = 0
+        self.eps : float = 1e-8
         self.loss_data : list = []
+        self.theta_history : list = []
     
 
-    def fit(self, X, y, learning_rate=0.01):
+    def fit(self, X, y, learning_rate=0.018, random_start = False):
         """
         Fit the linear regression model to the data using Gradient Descent.
         
@@ -43,10 +44,8 @@ class LinearRegressor:
         self.y = y
         self.num_data_points, self.num_features = self.X.shape
         self.theta = np.zeros(self.num_features)
-        # print("X: ", self.X.shape)
-        # print("y: ", self.y.shape)
-        # print("Num data points: ", self.num_data_points)
-        # print("Num features: ", self.num_features)
+        if random_start:
+            self.theta = np.random.uniform(-100, 100, self.num_features)
         n_iter = self.num_iter
         # Gradient Descent
         prev_loss : float = float('inf')
@@ -57,15 +56,15 @@ class LinearRegressor:
             # print(f"Iteration {iter+1} - Loss: {loss}")
             gradient = (1 / self.num_data_points) * np.dot(self.X.T, errors)  # Compute gradient
 
-            if (abs(prev_loss - loss) < self.eps): # Check for convergence
+            if ( prev_loss - loss < self.eps): # Check for convergence
                 break
             prev_loss = loss
             self.loss_data.append([self.theta.copy(),loss])
             # Ensure gradient is 1D and matches the shape of theta
             self.theta -= learning_rate * gradient.flatten()  # Update theta
+            self.theta_history.append(self.theta.copy())
         
-        return self.theta
-
+        return np.array(self.theta_history)
     
     def predict(self, X):
         """

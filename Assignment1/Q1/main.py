@@ -8,7 +8,9 @@ def q1_2(learning_rate=0.018):
     X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
     y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values).flatten()  # Flatten y to 1D array
     model = LinearRegressor()
-    theta = model.fit(X, y,learning_rate=learning_rate)
+    theta_history = model.fit(X, y,learning_rate=learning_rate)
+    theta = theta_history[-1]
+    print(theta)
     y_pred = model.predict(X)
     errors = y_pred - y
     loss = (1 / (2 * X.shape[0])) * np.sum(errors ** 2)
@@ -31,7 +33,8 @@ def q1_3(learning_rate=0.018):
     X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
     y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values).flatten()  # Flatten y to 1D array
     model = LinearRegressor()
-    theta = model.fit(X, y,learning_rate=learning_rate)
+    theta_history = model.fit(X, y,learning_rate=learning_rate)
+    theta = theta_history[-1]
     loss_data = model.loss_data
     theta0 = np.array([item[0][0] for item in loss_data])
     theta1 = np.array([item[0][1] for item in loss_data])
@@ -51,15 +54,64 @@ def q1_3(learning_rate=0.018):
     plt.savefig(f'q1_3_{learning_rate}.png')
 
     
+def q1_4(learning_rate=0.018):
+    X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
+    y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values).flatten()  # Flatten y to 1D array
+    model = LinearRegressor()
+    theta_history = model.fit(X, y,learning_rate=learning_rate)
+    theta = theta_history[-1]
+    loss_data = model.loss_data
+    theta0 = np.array([item[0][0] for item in loss_data])
+    theta1 = np.array([item[0][1] for item in loss_data])
+    loss = np.array([item[1] for item in loss_data])
+    fig, ax = plt.subplots()
+    scatter = ax.scatter(theta0, theta1, c=loss, cmap='viridis', edgecolors='k')
 
-    
+    # Add colorbar
+    cbar = plt.colorbar(scatter)
+    cbar.set_label('Loss')
 
+    # Labels
+    ax.set_xlabel('Theta 0')
+    ax.set_ylabel('Theta 1')
+    ax.set_title('Loss Heatmap')
+    ax.grid(True)
+    # Save and show
+    plt.savefig(f'q1_4_{learning_rate}.png')
 
+def q1_5():
+    X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
+    y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values).flatten()  # Flatten y to 1D array
+    # fig, ax = plt.subplots()
+    for learning_rate in [0.001,0.025,0.1]:
+        fig, ax = plt.subplots()
+        model = LinearRegressor()
+        theta_history = model.fit(X, y,learning_rate=learning_rate)
+        theta = theta_history[-1]
+        loss_data = model.loss_data
+        theta0 = np.array([item[0][0] for item in loss_data])
+        theta1 = np.array([item[0][1] for item in loss_data])
+        loss = np.array([item[1] for item in loss_data])
+        
+        scatter = ax.scatter(theta0, theta1, c=loss, cmap='viridis', edgecolors='k')
+
+        # Add colorbar
+        cbar = plt.colorbar(scatter)
+        cbar.set_label('Loss')
+
+        # Labels
+        ax.set_xlabel('Theta 0')
+        ax.set_ylabel('Theta 1')
+        ax.set_title('Loss Heatmap')
+        ax.grid(True)
+        # Save and show
+        plt.savefig(f'q1_5_{learning_rate}.png')
 
 def main():
-    q1_2()
-    q1_3()
-
+    # q1_2()
+    # q1_3()
+    # q1_4()
+    q1_5()
     
     
 
