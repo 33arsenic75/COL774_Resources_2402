@@ -130,6 +130,7 @@ class StochasticLinearRegressor:
 
             total_loss = total_loss / (2 * self.num_data_points)
             if abs(prev_loss - total_loss) < self.eps:
+                print(f"Iterations finished at {iter+1}")
                 break
             prev_loss = total_loss
             self.loss_data.append([self.theta.copy(), total_loss])

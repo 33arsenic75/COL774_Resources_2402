@@ -45,7 +45,7 @@ def plot_theta(loss_data, batch_size):
     # Add colorbar
     cbar = fig.colorbar(scatter, ax=ax, shrink=0.5, aspect=5)
     cbar.set_label('Loss')
-
+    ax.plot(theta0, theta1, theta2, color='red', linestyle='-', marker='o', markersize=3, alpha=0.7)
     # Axis labels
     ax.set_xlabel('Theta 0')
     ax.set_ylabel('Theta 1')
@@ -53,14 +53,17 @@ def plot_theta(loss_data, batch_size):
     ax.set_title('Loss Heatmap in 3D')
 
     # Save and show plot
-    plt.savefig(f'q2_4_{batch_size}.png')
+    plt.savefig(f'q2_5_{batch_size}.png')
     print(f"File saved as q2_5_{batch_size}.png")
 
 def q2_5(X_train, y_train, X_test, y_test):
-    batch_size_list = [800000, 800, 80, 1]
-    model = StochasticLinearRegressor()
+    # batch_size_list = [800000, 8000, 80]
+    batch_size_list = [1]
+    # batch_size_list = [800000]
+    
     for batch_size in batch_size_list:
         start_time = time.time()
+        model = StochasticLinearRegressor()
         theta_sgd_history = model.fit(X_train, y_train,learning_rate=0.001, batch_size=batch_size)
         end_time = time.time()
         theta_sgd = theta_sgd_history[-1]
@@ -95,5 +98,5 @@ X_train, y_train, X_test, y_test = get_data('generated_data.csv')
 
 
 q2_5(X_train,y_train,X_test,y_test)
-q2_3b(X_train,y_train,X_test,y_test)
+# q2_3b(X_train,y_train,X_test,y_test)
 

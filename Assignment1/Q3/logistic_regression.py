@@ -13,7 +13,7 @@ class LogisticRegressor:
         self.X : np.array = None
         self.y : np.array = None 
         self.theta : np.array = None
-        self.num_iter : int = int(10)
+        self.num_iter : int = int(1e3)
         self.eps : float = 0
         self.loss_data : list = []
         self.mean : float = None
