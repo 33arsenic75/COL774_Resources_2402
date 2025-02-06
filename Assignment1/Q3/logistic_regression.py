@@ -18,6 +18,7 @@ class LogisticRegressor:
         self.loss_data : list = []
         self.mean : float = None
         self.std : float = None
+        self.theta_history : list = []
         pass
     
     def sigmoid(self, z):
@@ -72,13 +73,14 @@ class LogisticRegressor:
             # Compute loss (negative log-likelihood)
             loss = -np.sum(y * np.log(h + 1e-8) + (1 - y) * np.log(1 - h + 1e-8))
             self.loss_data.append((self.theta.copy(), loss))
+            self.theta_history.append(self.theta.copy())
 
             
             # Check for convergence
             if np.linalg.norm(delta_theta) < self.eps:
                 break
 
-        return self.theta
+        return np.array(self.theta_history)
 
         
     
