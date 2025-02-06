@@ -55,10 +55,11 @@ class StochasticLinearRegressor:
         self.X : np.array = None
         self.y : np.array = None 
         self.theta : np.array = None
-        self.num_iter : int = int(1e3)
-        self.eps : float = 0
+        self.num_iter : int = int(1e4)
+        self.eps : float = 1e-7
         self.loss_data : list = []
         self.batch_size : int = None
+        self.theta_history : list = []
 
     def closed_form_solution(self, X, y):
         """
@@ -82,7 +83,7 @@ class StochasticLinearRegressor:
         theta_closed_form = np.linalg.inv(self.X.T.dot(self.X)).dot(self.X.T).dot(y)
         return theta_closed_form
 
-    def fit(self, X, y, learning_rate=0.01, batch_size=100):
+    def fit(self, X, y, learning_rate=0.01, batch_size=1000):
         """
         Fit the linear regression model to the data using Gradient Descent.
         
@@ -132,10 +133,11 @@ class StochasticLinearRegressor:
                 break
             prev_loss = total_loss
             self.loss_data.append([self.theta.copy(), total_loss])
-            
-            print(f"Epoch {iter + 1} - Loss: {total_loss}")
+            # if(iter%500 == 499):
+            #     print(f"Epoch {iter + 1} - Loss: {total_loss}")
+            self.theta_history.append(self.theta.copy())
 
-        return self.theta
+        return np.array(self.theta_history)
     
     def predict(self, X):
         """
@@ -153,8 +155,6 @@ class StochasticLinearRegressor:
         """
         X_pred = np.hstack((np.ones((X.shape[0], 1)), X)) # Add a column of ones to X for the intercept term
         y_pred = np.dot(X_pred, self.theta)  # Calculate predictions
-        # print("X_pred: ", X_pred.shape)
-        # print("y_pred: ", y_pred.shape)
         return y_pred
     
     def loss(self,X,y):

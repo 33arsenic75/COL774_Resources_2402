@@ -13,7 +13,7 @@ class LinearRegressor:
         self.y : np.array = None 
         self.theta : np.array = None
         self.num_iter : int = int(1e5)
-        self.eps : float = 1e-8
+        self.eps : float = 1e-7
         self.loss_data : list = []
         self.theta_history : list = []
     
