@@ -48,28 +48,14 @@ def q4_2(X,y):
     Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
     plt.contour(xx, yy, Z, levels=[0.5], colors='black', linestyles='dashed', linewidths=2)
-
-    pos = np.dstack((xx, yy))
-    epsilon = 1e-6
-    rv_0 = multivariate_normal(mean=model.mu_0, cov=model.sigma)
-    rv_1 = multivariate_normal(mean=model.mu_1, cov=model.sigma)
-
-    w = w = np.linalg.inv(model.sigma) @ (model.mu_1 - model.mu_0)
-    b = -0.5 * (model.mu_1.T @ np.linalg.inv(model.sigma) @ model.mu_1 - model.mu_0.T @ np.linalg.inv(model.sigma) @ model.mu_0) - np.log(model.phi / (1 - model.phi))
-    grid = np.c_[xx.ravel(), yy.ravel()]
-    pdf_0 = rv_0.pdf(grid).reshape(xx.shape)
-    pdf_1 = rv_1.pdf(grid).reshape(xx.shape)
-
-    plt.contour(xx, yy, pdf_0, levels=np.logspace(-5, 0, 10), cmap="Reds", alpha=0.5)
-    plt.contour(xx, yy, pdf_1, levels=np.logspace(-5, 0, 10), cmap="Blues", alpha=0.5)
-
+    
     plt.xlabel('Feature 1')
     plt.ylabel('Feature 2')
     plt.legend()
     plt.grid(True)
     plt.title('Logistic Regression Decision Boundary')
-    equation_text = f"W: [{w[0]:.2f}, {w[1]:.2f}]\n b: {b:.2f}"
-    plt.text(x_min + 0.5, y_max - 0.5, equation_text, fontsize=12, color='black', bbox=dict(facecolor='white', alpha=0.6))
+    
+    
     plt.savefig('q4_2.png')
     print(f"Image saved as q4_2.png")
     plt.close()
@@ -103,19 +89,6 @@ def q4_5(X,y):
     Z = Z.reshape(xx.shape)
     plt.contour(xx, yy, Z, levels=[0.5], colors='black', linestyles='dashed', linewidths=2)
 
-    pos = np.dstack((xx, yy))
-    # epsilon = 1e-6
-    rv_0 = multivariate_normal(mean=model.mu_0, cov=model.sigma_0)
-    rv_1 = multivariate_normal(mean=model.mu_1, cov=model.sigma_1)
-
-
-    grid = np.c_[xx.ravel(), yy.ravel()]
-    pdf_0 = rv_0.pdf(grid).reshape(xx.shape)
-    pdf_1 = rv_1.pdf(grid).reshape(xx.shape)
-
-    plt.contour(xx, yy, pdf_0, levels=np.logspace(-5, 0, 10), cmap="Reds", alpha=0.5)
-    plt.contour(xx, yy, pdf_1, levels=np.logspace(-5, 0, 10), cmap="Blues", alpha=0.5)
-
     plt.xlabel('Feature 1')
     plt.ylabel('Feature 2')
     plt.legend()
@@ -132,7 +105,7 @@ y = np.genfromtxt('../data/Q4/q4y.dat', dtype=str)
 
 mp = {'Alaska': 0, 'Canada': 1}
 y = np.array([mp[i] for i in y])
-q4_1(X,y)
+# q4_1(X,y)
 q4_2(X,y)
-q4_4(X,y)
+# q4_4(X,y)
 q4_5(X,y)
