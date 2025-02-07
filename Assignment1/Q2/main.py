@@ -54,11 +54,13 @@ def plot_theta(loss_data, batch_size):
 
     # Save and show plot
     plt.savefig(f'q2_5_{batch_size}.png')
+    plt.close()
     print(f"File saved as q2_5_{batch_size}.png")
 
 def q2_5(X_train, y_train, X_test, y_test):
-    # batch_size_list = [800000, 8000, 80]
-    batch_size_list = [1]
+    print("Q2.5")
+    batch_size_list = [800000, 8000, 80, 1]
+    # batch_size_list = [8000]
     # batch_size_list = [800000]
     
     for batch_size in batch_size_list:
@@ -72,19 +74,22 @@ def q2_5(X_train, y_train, X_test, y_test):
         print(f"Batch Size: {batch_size}")
         print(f"Iterations: {len(theta_sgd_history)}")
         print(f"Parameters: {theta_sgd}")
-        print(f"Test MSE: {train_error}")
-        print(f"Testing Loss: {test_error}")
+        print(f"Train MSE: {train_error}")
+        print(f"Test Loss: {test_error}")
         print(f"Time Taken: {end_time-start_time}")
         plot_theta(model.loss_data,batch_size)
-        print("--"*20)
+        print("--"*5)
+    print("--"*20)
 
 def q2_3b(X_train, y_train, X_test, y_test):
+    print("Q2.3b")
     start_time = time.time()
     model = StochasticLinearRegressor()
     theta_closed = model.closed_form_solution(X_train, y_train)
     end_time = time.time()
     print(f"Closed Form Solution: {theta_closed}")
     print(f"Time Taken: {end_time-start_time}")
+    print("--"*20)
 
 
 

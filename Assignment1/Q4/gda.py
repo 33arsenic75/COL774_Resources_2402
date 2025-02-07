@@ -20,8 +20,8 @@ class GaussianDiscriminantAnalysis:
         self.mu_0 : np.array = None
         self.mu_1 : np.array = None
         self.sigma : np.array = None
-        self.sigma0 : np.array = None
-        self.sigma1 : np.array = None
+        self.sigma_0 : np.array = None
+        self.sigma_1 : np.array = None
         self.assume_same_covariance : bool = False
         pass
     
@@ -51,7 +51,7 @@ class GaussianDiscriminantAnalysis:
         self.mean = np.mean(X, axis=0)
         self.std = np.std(X, axis=0)
         X = (X - self.mean) / (self.std + 1e-8)
-        self.X = np.hstack((np.ones((X.shape[0], 1)), X)) 
+        self.X = X
 
         self.y = y
         self.num_data_points, self.num_features = self.X.shape
@@ -71,30 +71,30 @@ class GaussianDiscriminantAnalysis:
             return self.mu_0, self.mu_1, self.sigma
         
         else:
-            self.sigma0 = np.zeros((self.num_features, self.num_features))
-            self.sigma1 = np.zeros((self.num_features, self.num_features))
+            self.sigma_0 = np.zeros((self.num_features, self.num_features))
+            self.sigma_1 = np.zeros((self.num_features, self.num_features))
             
             count_0 = np.sum(y == 0)
             count_1 = np.sum(y == 1)
             for i in range(n):
                 if self.y[i] == 0:
                     x_i = self.X[i] - self.mu_0
-                    self.sigma0 += np.outer(x_i, x_i)
+                    self.sigma_0 += np.outer(x_i, x_i)
                 else:
                     x_i = self.X[i] - self.mu_1
-                    self.sigma1 += np.outer(x_i, x_i)
+                    self.sigma_1 += np.outer(x_i, x_i)
 
-            self.sigma0 /= count_0
-            self.sigma1 /= count_1
+            self.sigma_0 /= count_0
+            self.sigma_1 /= count_1
 
-            return self.mu_0, self.mu_1, self.sigma0, self.sigma1
+            return self.mu_0, self.mu_1, self.sigma_0, self.sigma_1
 
     def predict_proba(self, X):
         """
         Compute the probability of belonging to class 1 using Bayes' rule.
         """
         X = (X - self.mean) / (self.std + 1e-8)
-        X = np.hstack((np.ones((X.shape[0], 1)), X))
+        # X = np.hstack((np.ones((X.shape[0], 1)), X))
         
         if self.assume_same_covariance:
             p_x_given_y0 = multivariate_normal.pdf(X, mean=self.mu_0, cov=self.sigma, allow_singular=True)

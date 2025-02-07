@@ -56,7 +56,7 @@ class StochasticLinearRegressor:
         self.y : np.array = None 
         self.theta : np.array = None
         self.num_iter : int = int(1e4)
-        self.eps : float = 1e-7
+        self.eps : float = 1e-8
         self.loss_data : list = []
         self.batch_size : int = None
         self.theta_history : list = []
@@ -135,7 +135,7 @@ class StochasticLinearRegressor:
             prev_loss = total_loss
             self.loss_data.append([self.theta.copy(), total_loss])
             # if(iter%500 == 499):
-            #     print(f"Epoch {iter + 1} - Loss: {total_loss}")
+            print(f"Epoch {iter + 1} - Loss: {total_loss}")
             self.theta_history.append(self.theta.copy())
 
         return np.array(self.theta_history)

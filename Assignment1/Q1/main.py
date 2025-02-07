@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 def q1_2(learning_rate=0.018):
+    print("Q1.2")
     X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
     y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values).flatten()  # Flatten y to 1D array
     model = LinearRegressor()
@@ -26,10 +27,13 @@ def q1_2(learning_rate=0.018):
     plt.legend()
     plt.grid(True)
     plt.savefig(f'q1_2_{learning_rate}.png')
-    return loss
+    plt.close()
+    print("--"*20)
+
 
 
 def q1_3(learning_rate=0.018):
+    print("Q1.3")
     X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
     y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values).flatten()  # Flatten y to 1D array
     model = LinearRegressor()
@@ -52,9 +56,12 @@ def q1_3(learning_rate=0.018):
 
     # Show the plot
     plt.savefig(f'q1_3_{learning_rate}.png')
+    plt.close()
+    print("--"*20)
 
     
 def q1_4(learning_rate=0.018):
+    print("Q1.4")
     X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
     y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values).flatten()  # Flatten y to 1D array
     model = LinearRegressor()
@@ -78,8 +85,11 @@ def q1_4(learning_rate=0.018):
     ax.grid(True)
     # Save and show
     plt.savefig(f'q1_4_{learning_rate}.png')
+    plt.close()
+    print("--"*20)
 
 def q1_5():
+    print("Q1.5")
     X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
     y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values).flatten()  # Flatten y to 1D array
     # fig, ax = plt.subplots()
@@ -106,14 +116,17 @@ def q1_5():
         ax.grid(True)
         # Save and show
         plt.savefig(f'q1_5_{learning_rate}.png')
+        plt.close()
+        print("--"*5)
+    print("--"*20)
 
-def main():
-    # q1_2()
-    # q1_3()
-    # q1_4()
-    q1_5()
+
+
+q1_2()
+q1_3()
+q1_4()
+q1_5()
     
     
 
     
-main()

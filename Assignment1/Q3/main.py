@@ -5,12 +5,15 @@ import matplotlib.pyplot as plt
 
 
 def q3_1(X,y):
+    print("Q3.1")
     model = LogisticRegressor()
     theta_lgst_history = model.fit(X, y,learning_rate=0.01)
     theta_lgst = theta_lgst_history[-1]
     print(f"Parameters: {theta_lgst}")
+    print("--"*20)
 
 def q3_2(X,y):
+    print("Q3.2")
     model = LogisticRegressor()
     theta_lgst_history = model.fit(X, y,learning_rate=0.01)
     theta_lgst = theta_lgst_history[-1]   
@@ -31,6 +34,9 @@ def q3_2(X,y):
     plt.legend()
     plt.title('Logistic Regression Decision Boundary')
     plt.savefig('q3_2.png') 
+    print("Image saved as q3.png")
+    plt.close()
+    print("--"*20)
 
 
 X = np.array(pd.read_csv('../data/Q3/logisticX.csv', header=None).values)
