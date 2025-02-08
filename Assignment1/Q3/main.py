@@ -10,6 +10,9 @@ def q3_1(X,y):
     theta_lgst_history = model.fit(X, y,learning_rate=0.01)
     theta_lgst = theta_lgst_history[-1]
     print(f"Parameters: {theta_lgst}")
+    print("Normalization Constants: ")
+    print(f"Mean: {model.mean}")
+    print(f"Std: {model.std}")
     print("--"*20)
 
 def q3_2(X,y):

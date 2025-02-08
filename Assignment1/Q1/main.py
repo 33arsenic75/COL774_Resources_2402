@@ -4,6 +4,21 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+
+def q1_1():
+    print("Q1.1")
+    X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
+    y = np.array(pd.read_csv('../data/Q1/linearY.csv', header=None).values).flatten()  # Flatten y to 1D array
+    for learning_rate in np.arange(0.001, 0.05, 0.001):
+        model = LinearRegressor()
+        theta_history = model.fit(X, y,learning_rate=learning_rate)
+        theta = theta_history[-1]
+        y_predict = model.predict(X=X)
+        errors = y_predict - y
+        loss = (1 / (2 * X.shape[0])) * np.sum(errors ** 2)
+        print(f"eta: {learning_rate:.3f}, theta: {theta}, loss: {loss:3f}")
+    print("--"*20)
+
 def q1_2(learning_rate=0.018):
     print("Q1.2")
     X = np.array(pd.read_csv('../data/Q1/linearX.csv', header=None).values)
@@ -28,6 +43,7 @@ def q1_2(learning_rate=0.018):
     plt.grid(True)
     plt.savefig(f'q1_2_{learning_rate}.png')
     plt.close()
+    print(f"Image saved to q1_2_{learning_rate}")
     print("--"*20)
 
 
@@ -121,11 +137,11 @@ def q1_5():
     print("--"*20)
 
 
-
+# q1_1()
 q1_2()
-q1_3()
-q1_4()
-q1_5()
+# q1_3()
+# q1_4()
+# q1_5()
     
     
 
