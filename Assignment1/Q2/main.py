@@ -59,25 +59,23 @@ def plot_theta(loss_data, batch_size):
 
 def q2_5(X_train, y_train, X_test, y_test):
     print("Q2.5")
-    batch_size_list = [800000, 8000, 80, 1]
-    # batch_size_list = [8000]
-    # batch_size_list = [800000]
-    
-    for batch_size in batch_size_list:
-        start_time = time.time()
-        model = StochasticLinearRegressor()
-        theta_sgd_history = model.fit(X_train, y_train,learning_rate=0.001, batch_size=batch_size)
-        end_time = time.time()
-        theta_sgd = theta_sgd_history[-1]
-        test_error = model.loss(X=X_test,y=y_test)
-        train_error = model.loss_data[-1][-1]
+    # batch_size_list = [ 1, 80, 80_000, 800_000]
+    model = StochasticLinearRegressor()
+    model.fit(X_train, y_train,learning_rate=0.001)
+    theta_sgd_history = model.theta_history
+    test_error = model.loss(X=X_test,y=y_test)
+    loss_data = model.loss_data
+    theta_sgd = model.theta
+    i = 0
+    print("--"*5)
+    for batch_size in model.batch_size_list:
         print(f"Batch Size: {batch_size}")
-        print(f"Iterations: {len(theta_sgd_history)}")
-        print(f"Parameters: {theta_sgd}")
-        print(f"Train MSE: {train_error}")
-        print(f"Test Loss: {test_error}")
-        print(f"Time Taken: {end_time-start_time}")
-        plot_theta(model.loss_data,batch_size)
+        print(f"Iterations: {len(theta_sgd_history[batch_size])}")
+        print(f"Parameters: {theta_sgd[batch_size]}")
+        print(f"Train MSE: {loss_data[batch_size][-1][-1]}")
+        print(f"Test Loss: {test_error[i]}")
+        i += 1
+        plot_theta(loss_data[batch_size],batch_size)
         print("--"*5)
     print("--"*20)
 
