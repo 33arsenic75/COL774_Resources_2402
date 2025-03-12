@@ -4,7 +4,7 @@ import os
 from svm import *
 import matplotlib.pyplot as plt
 from sklearn.svm import SVC
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split,  GridSearchCV, cross_val_score
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import time
 from sklearn.linear_model import SGDClassifier 
@@ -12,8 +12,10 @@ import pandas as pd
 import seaborn as sns
 
 ENTRYNUMBER = 11596
-DIRECTORY_PATH = "../data/Q2/dataset/"
+TEST_DIRECTORY_PATH = "../data/Q2/test/"
+TRAIN_DIRECTORY_PATH = "../data/Q2/train/"
 TOTAL_CLASSES = 3
+SPLIT_RATIO = 0.8
 cv2.setLogLevel(0)
 
 def preprocess_images(images):
@@ -82,7 +84,7 @@ def convert_to_X_y(flattened_images, name_to_key):
 def train(lst):
     lst = [ (x%100)%11 for x in lst]
     # print(lst)
-    dict = get_folder_images(DIRECTORY_PATH, lst)
+    dict = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
     flattened_images = {key: preprocess_images(dict[key]) for key in dict}
     name_to_key = {key: i for i, key in enumerate(flattened_images)}
     key_to_name = {i: key for i, key in enumerate(flattened_images)}
@@ -100,22 +102,24 @@ def train(lst):
 def q2_1():
     start_time = time.time()
     lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
-    dict = get_folder_images(DIRECTORY_PATH, lst)
-    flattened_images = {key: preprocess_images(dict[key]) for key in dict}
-    name_to_key = {key: i for i, key in enumerate(flattened_images)}
-    key_to_name = {i: key for i, key in enumerate(flattened_images)}
+    dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
+    dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
+    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
+    key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
-    X, y = convert_to_X_y(flattened_images, name_to_key)
+    X_train, y_train = convert_to_X_y(flattened_images_train, name_to_key)
+    X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
     # Train the model
     model = SupportVectorMachine()
-    model.fit(X, y)  # Assuming X_train and y_train are defined
-    # print(y[0:10])
+    model.fit(X_train, y_train)  # Assuming X_train and y_train are defined
     # Get the number of support vectors
     num_support_vectors = len(model.support_vectors)
-    predictions = model.predict(X)
-    accuracy = np.mean(predictions == y)  
+    predictions = model.predict(X_test)
+    accuracy = np.mean(predictions == y_test)  
     # Get the percentage of training samples that are support vectors
-    total_samples = len(y)
+    total_samples = len(y_train)
     percentage_support_vectors = (num_support_vectors / total_samples) * 100
     end_time = time.time()
     print("--"*20)
@@ -137,24 +141,26 @@ def q2_1():
 def q2_2():
     start_time = time.time()
     lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
-    dict = get_folder_images(DIRECTORY_PATH, lst)
-    flattened_images = {key: preprocess_images(dict[key]) for key in dict}
-    name_to_key = {key: i for i, key in enumerate(flattened_images)}
-    key_to_name = {i: key for i, key in enumerate(flattened_images)}
+    dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
+    dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
+    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
+    key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
-    X, y = convert_to_X_y(flattened_images, name_to_key)
+    X_train, y_train = convert_to_X_y(flattened_images_train, name_to_key)
+    X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
     # Train the model
     model = SupportVectorMachine()
-    model.fit(X, y, kernel = 'gaussian', C = 1.0, gamma=0.001)  # Assuming X_train and y_train are defined
+    model.fit(X_train, y_train, kernel = 'gaussian', C = 1.0, gamma=0.001)  # Assuming X_train and y_train are defined
     # print(y[0:10])
     # Get the number of support vectors
-    predictions = model.predict(X)
-    accuracy = np.mean(predictions == y)  
-    total_samples = len(y)
+    predictions = model.predict(X_test)
+    accuracy = np.mean(predictions == y_test)  
+    total_samples = len(y_test)
     num_support_vectors = len(model.support_vectors)
     percentage_support_vectors = (num_support_vectors / total_samples) * 100
     # Get the percentage of training samples that are support vectors
-    total_samples = len(y)
     end_time = time.time()
     print("--"*20)
     print(f"Percentage of training samples that are support vectors: {percentage_support_vectors:.2f}%")
@@ -172,16 +178,20 @@ def q2_3acd():
     lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
 
     start_time = time.time()
-    dict = get_folder_images(DIRECTORY_PATH, lst)
-    flattened_images = {key: preprocess_images(dict[key]) for key in dict}
-    name_to_key = {key: i for i, key in enumerate(flattened_images)}
-    key_to_name = {i: key for i, key in enumerate(flattened_images)}
+    dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
+    dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
+    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
+    key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
-    X, y = convert_to_X_y(flattened_images, name_to_key)
+    X_train, y_train = convert_to_X_y(flattened_images_train, name_to_key)
+    X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
+
     model = SVC(kernel='linear', C = 1.0)   
-    model.fit(X, y)
-    predictions = model.predict(X)
-    accuracy = np.mean(predictions == y)
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    accuracy = np.mean(predictions == y_test)
     num_support_vectors = sum(model.n_support_)
     support_vectors = model.support_vectors_
     percentage_support_vectors = (np.sum(num_support_vectors) / len(y)) * 100
@@ -198,9 +208,9 @@ def q2_3acd():
 
     start_time = time.time()
     model = SVC(kernel='rbf', C = 1.0, gamma=0.001)   
-    model.fit(X, y)
-    predictions = model.predict(X)
-    accuracy = np.mean(predictions == y)
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    accuracy = np.mean(predictions == y_test)
     num_support_vectors = sum(model.n_support_)
     support_vectors = model.support_vectors_
     percentage_support_vectors = (np.sum(num_support_vectors) / len(y)) * 100
@@ -217,14 +227,18 @@ def q2_3acd():
 def q2_3b():
     lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
 
-    dict = get_folder_images(DIRECTORY_PATH, lst)
-    flattened_images = {key: preprocess_images(dict[key]) for key in dict}
-    name_to_key = {key: i for i, key in enumerate(flattened_images)}
-    key_to_name = {i: key for i, key in enumerate(flattened_images)}
+    dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
+    dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
+    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
+    key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
-    X, y = convert_to_X_y(flattened_images, name_to_key)
+    X_train, y_train = convert_to_X_y(flattened_images_train, name_to_key)
+    X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
+
     model = SVC(kernel='linear', C = 1.0)   
-    model.fit(X, y)
+    model.fit(X_train, y_train)
 
     weights_1 = model.coef_
     bias_1 = model.intercept_
@@ -232,7 +246,7 @@ def q2_3b():
     del model
 
     model = SupportVectorMachine()
-    model.fit(X, y)  # Assuming X_train and y_train are defined
+    model.fit(X_test, y_test)  # Assuming X_train and y_train are defined
     weights_2 = [model.w]
     bias_2 = [model.b]
     # print(weights_2, bias_2)
@@ -246,35 +260,39 @@ def q2_3b():
 
 def q2_4():
     lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
-    dict = get_folder_images(DIRECTORY_PATH, lst)
-    flattened_images = {key: preprocess_images(dict[key]) for key in dict}
-    name_to_key = {key: i for i, key in enumerate(flattened_images)}
-    key_to_name = {i: key for i, key in enumerate(flattened_images)}
+    dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
+    dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
+    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
+    key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
-    X, y = convert_to_X_y(flattened_images, name_to_key)
+    X_train, y_train = convert_to_X_y(flattened_images_train, name_to_key)
+    X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
+    
     libsvm = SVC(kernel='linear')
 
     start_time = time.time()
-    libsvm.fit(X, y)
+    libsvm.fit(X_train, y_train)
     libsvm_train_time = time.time() - start_time
-    libsvm_acc = accuracy_score(y, libsvm.predict(X))
+    libsvm_acc = accuracy_score(y_test, libsvm.predict(X_test))
     sgd_svm = SGDClassifier(loss='hinge', learning_rate='optimal', max_iter=1000, random_state=42)
 
     start_time = time.time()
-    sgd_svm.fit(X, y)
+    sgd_svm.fit(X_train, y_train)
     sgd_train_time = time.time() - start_time
 
-    sgd_acc = accuracy_score(y, sgd_svm.predict(X))
+    sgd_acc = accuracy_score(y_test, sgd_svm.predict(X_test))
 
     print(f"LIBLINEAR: Accuracy = {libsvm_acc:.4f}, Training Time = {libsvm_train_time:.4f} sec")
     print(f"SGD SVM: Accuracy = {sgd_acc:.4f}, Training Time = {sgd_train_time:.4f} sec")
 
-def q2_5():
+def q2_5_7():
     model = {}
     for i in range(TOTAL_CLASSES):
         for j in range(i+1, TOTAL_CLASSES):
             lst = [i , j]
-            dict = get_folder_images(DIRECTORY_PATH, lst)
+            dict = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
             flattened_images = {key: preprocess_images(dict[key]) for key in dict}
             name_to_key = {key: i for i, key in enumerate(flattened_images)}
             key_to_name = {i: key for i, key in enumerate(flattened_images)}
@@ -285,7 +303,7 @@ def q2_5():
             print(f"Trained model for {i} vs {j}")
     
     lst = [i for i in range(TOTAL_CLASSES)]
-    dict = get_folder_images(DIRECTORY_PATH, lst)
+    dict = get_folder_images(TEST_DIRECTORY_PATH, lst)
     X, y = [], []
     flattened_images = {key: preprocess_images(dict[key]) for key in dict}
     name_to_key = {key: i for i, key in enumerate(flattened_images)}
@@ -334,12 +352,12 @@ def q2_5():
     plt.title("Confusion Matrix")
     plt.savefig("q2_5_confusion_matrix.png")
 
-def q2_6():
+def q2_6_7():
     model = {}
     for i in range(TOTAL_CLASSES):
         for j in range(i+1, TOTAL_CLASSES):
             lst = [i , j]
-            dict = get_folder_images(DIRECTORY_PATH, lst)
+            dict = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
             flattened_images = {key: preprocess_images(dict[key]) for key in dict}
             name_to_key = {key: i for i, key in enumerate(flattened_images)}
             key_to_name = {i: key for i, key in enumerate(flattened_images)}
@@ -350,7 +368,7 @@ def q2_6():
             print(f"Trained model for {i} vs {j}")
     
     lst = [i for i in range(TOTAL_CLASSES)]
-    dict = get_folder_images(DIRECTORY_PATH, lst)
+    dict = get_folder_images(TEST_DIRECTORY_PATH, lst)
     X, y = [], []
     flattened_images = {key: preprocess_images(dict[key]) for key in dict}
     name_to_key = {key: i for i, key in enumerate(flattened_images)}
@@ -399,10 +417,131 @@ def q2_6():
     plt.title("Confusion Matrix")
     plt.savefig("q2_6_confusion_matrix.png")
 
+def q2_8a():
+    C_values = [1e-5, 1e-3, 1, 5, 10]
+    KFOLD = 5
+    lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
+    dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
+    dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
+    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
+    key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
+
+    X_train, y_train = convert_to_X_y(flattened_images_train, name_to_key)
+    X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
+
+    model = SVC(kernel='rbf', gamma=0.001)
+    grid_search = GridSearchCV(model, param_grid={'C': C_values}, cv=KFOLD, scoring='accuracy', n_jobs=-1)
+    grid_search.fit(X_train, y_train)
+
+    best_C = grid_search.best_params_['C']
+    print(f"Optimal C value: {best_C}")
+
+    # Train the final model using the best C
+    final_model = SVC(kernel='rbf', C=best_C, gamma=0.001)
+    final_model.fit(X_train, y_test)
+
+    # Evaluate on test data
+    test_accuracy = final_model.score(X_test, y_test)
+    print(f"Test Accuracy: {test_accuracy:.4f}")
+
+def q2_8b():
+    C_values = [1e-5, 1e-3, 1, 5, 10]
+    KFOLD = 5
+    lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
+    dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
+    dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
+    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
+    key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
+
+    X_train, y_train = convert_to_X_y(flattened_images_train, name_to_key)
+    X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
+
+    cv_accuracies = []
+    test_accuracies = []
+
+    # Loop through each C value
+    for C in C_values:
+        # Train SVM with current C
+        svm_model = SVC(kernel='rbf', C=C, gamma=0.001)
+        
+        # Perform 5-fold cross-validation and store mean accuracy
+        cv_acc = np.mean(cross_val_score(svm_model, X_train, y_train, cv=KFOLD, scoring='accuracy'))
+        cv_accuracies.append(float(cv_acc))
+
+        # Train model on full training set and evaluate on test set
+        svm_model.fit(X_train, y_train)
+        test_acc = svm_model.score(X_test, y_test)
+        test_accuracies.append(test_acc)
 
 
+    plt.figure(figsize=(8, 5))
+    plt.plot(C_values, cv_accuracies, label="5-Fold Cross-Validation Accuracy", marker='o')
+    plt.plot(C_values, test_accuracies, label="Test Accuracy", marker='s')
+    # Log scale for better visualization
+    plt.xscale('log')
+    plt.xlabel("C Value (Log Scale)")
+    plt.ylabel("Accuracy")
+    plt.title("Cross-Validation vs. Test Accuracy for SVM (RBF Kernel)")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("q2_8b_plot.png")
+    # Find the best C based on cross-validation accuracy
+    best_C = C_values[np.argmax(cv_accuracies)]
+    print(f"Best C based on 5-fold Cross-Validation: {best_C}")
+
+def q2_8c():
+    model = {}
+    BEST_C = 5.0
+    for i in range(TOTAL_CLASSES):
+        for j in range(i+1, TOTAL_CLASSES):
+            lst = [i , j]
+            dict = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
+            flattened_images = {key: preprocess_images(dict[key]) for key in dict}
+            name_to_key = {key: i for i, key in enumerate(flattened_images)}
+            key_to_name = {i: key for i, key in enumerate(flattened_images)}
+
+            X, y = convert_to_X_y(flattened_images, name_to_key)
+            model[i, j] = SVC(kernel='rbf', C = BEST_C, gamma=0.001)   
+            model[i, j].fit(X, y)
+            print(f"Trained model for {i} vs {j}")
     
-    
+    lst = [i for i in range(TOTAL_CLASSES)]
+    dict = get_folder_images(TEST_DIRECTORY_PATH, lst)
+    X, y = [], []
+    flattened_images = {key: preprocess_images(dict[key]) for key in dict}
+    name_to_key = {key: i for i, key in enumerate(flattened_images)}
+    key_to_name = {i: key for i, key in enumerate(flattened_images)}
+
+    for key in flattened_images:
+        X.extend(flattened_images[key])
+        y.extend([name_to_key[key]]*len(flattened_images[key]))
+
+    X = np.array(X)
+    y = np.array(y)
+    predictions = {}
+    for i in range(TOTAL_CLASSES):
+        for j in range(i+1, TOTAL_CLASSES):
+            predictions[i, j] = model[i, j].predict(X)
+            print(f"Predicted for {i} vs {j}")
+
+
+    votes = np.zeros((X.shape[0], TOTAL_CLASSES), dtype=int)
+    # Corrected vectorized voting process for -1 and 1 predictions
+    for j in range(TOTAL_CLASSES):
+        for k in range(j + 1, TOTAL_CLASSES):
+            mask = predictions[j, k] == 1  # Boolean mask where class k is predicted
+            votes[:, k] += mask  # Increase votes for class k when predicted
+            votes[:, j] += ~mask  # Increase votes for class j when not predicted (bitwise NOT is incorrect for -1, so we use direct logic)
+
+    # Get final predictions
+    final_predictions = np.argmax(votes, axis=1)
+    accuracy_score = np.mean(final_predictions == y)
+    print(f"Accuracy: {accuracy_score}")
+
 
 
 
@@ -419,5 +558,8 @@ def q2_6():
 # q2_3acd()
 # q2_3b()
 # q2_4()
-# q2_5()
-# q2_6()
+# q2_5_7()
+# q2_6_7()
+# q2_8a()
+# q2_8b()
+# q2_8c()

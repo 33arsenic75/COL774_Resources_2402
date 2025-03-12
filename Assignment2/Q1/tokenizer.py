@@ -5,6 +5,8 @@ import string
 import re
 from sklearn.feature_extraction.text import CountVectorizer
 
+MAX_NGRAM = 5
+
 # Download stopwords if not already available
 nltk.download('stopwords')
 # Initialize stopwords and stemmer
@@ -34,4 +36,22 @@ def unigram_bigram_tokenizer(text):
     bigrams = [" ".join(tokens[i:i+2]) for i in range(len(tokens)-1)]
     return unigrams + bigrams
 
+def bigrams(text):
+    tokens = stemming_stopword_removal(text)
+    unigrams = tokens
+    bigrams = [" ".join(tokens[i:i+2]) for i in range(len(tokens)-1)]
+    return bigrams
 
+def unigrams(text):
+    tokens = stemming_stopword_removal(text)
+    unigrams = tokens
+    return unigrams
+
+def multigram_tokenizer(text, max_n=MAX_NGRAM):
+    tokens = stemming_stopword_removal(text)
+    ngrams = tokens[:]  # Start with unigrams
+
+    for n in range(2, max_n + 1):  # Generate bigrams, trigrams, etc.
+        ngrams.extend([" ".join(tokens[i:i+n]) for i in range(len(tokens)-n+1)])
+
+    return ngrams
