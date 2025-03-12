@@ -59,7 +59,6 @@ class SupportVectorMachine:
             #         K[i,j] = np.exp(-gamma * np.linalg.norm(X[i] - X[j]) ** 2)
             pairwise_sq_dists = cdist(X, X, metric='sqeuclidean')  # Compute squared Euclidean distances efficiently
             K = np.exp(-gamma * pairwise_sq_dists)
-            print("K Calculated")
         else:
             raise ValueError("Unsupported kernel type")
         
@@ -96,7 +95,6 @@ class SupportVectorMachine:
             self.w = None
             self.b = np.mean(self.support_vector_labels - np.sum(self.alphas * self.support_vector_labels * K[self.support_vector_indices][:, self.support_vector_indices], axis=1))
     
-    
     def predict(self, X):
         '''
         Predict the class of the input data
@@ -115,7 +113,9 @@ class SupportVectorMachine:
             decision_values = np.sum((self.alphas * self.support_vector_labels)[:, np.newaxis] * (self.support_vectors @ X.T), axis=0)
         else:
             # Compute the kernel similarity between test points and support vectors
-            K = np.exp(-self.gamma * np.linalg.norm(X[:, np.newaxis] - self.support_vectors, axis=2) ** 2)
+            # K = np.exp(-self.gamma * np.linalg.norm(X[:, np.newaxis] - self.support_vectors, axis=2) ** 2)
+            sq_dists = cdist(X, self.support_vectors, metric='sqeuclidean')
+            K = np.exp(-self.gamma * sq_dists)
             decision_values = np.sum(self.alphas * self.support_vector_labels * K, axis=1)
         
         return np.sign(decision_values + self.b)  # Output is -1 or 1
