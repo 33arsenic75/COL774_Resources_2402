@@ -5,7 +5,7 @@ from svm import *
 import matplotlib.pyplot as plt
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split,  GridSearchCV, cross_val_score
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, recall_score, precision_score, f1_score
 import time
 from sklearn.linear_model import SGDClassifier 
 import pandas as pd
@@ -222,7 +222,7 @@ def q2_3acd():
 
     X_train, y_train = convert_to_X_y(flattened_images_train, name_to_key)
     X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
-
+    print(name_to_key.keys())
     model = SVC(kernel='linear', C = 1.0)   
     model.fit(X_train, y_train)
     predictions = model.predict(X_test)
@@ -510,7 +510,7 @@ def q2_7():
             if key not in selected_images:
                 selected_images[key] = filename
                 src_path = os.path.join(f"{IMAGE_FOLDER}{true_label}/", filename)
-                dst_path = os.path.join(OUTPUT_FOLDER, f"{true_label}_{predicted_label}_{filename}")
+                dst_path = os.path.join(OUTPUT_FOLDER, f"{q}_{true_label}_{predicted_label}_{filename}")
 
                 # Copy image to output folder
                 if os.path.exists(src_path):
@@ -544,9 +544,20 @@ def q2_8a():
     final_model = SVC(kernel='rbf', C=best_C, gamma=0.001)
     final_model.fit(X_train, y_train)
 
-    # Evaluate on test data
-    test_accuracy = final_model.score(X_test, y_test)
-    print(f"Test Accuracy: {test_accuracy:.4f}")
+    y_pred = final_model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred, average='weighted')  # Change 'weighted' based on class balance
+    precision = precision_score(y_test, y_pred, average='weighted')
+    f1 = f1_score(y_test, y_pred, average='weighted')
+
+    # Print results
+    print("--"*20)
+    print(f"Test Accuracy: {accuracy:.4f}")
+    print(f"Recall: {recall:.4f}")
+    print(f"Precision: {precision:.4f}")
+    print(f"F1 Score: {f1:.4f}")
+    print("--"*20)
+    
 
 def q2_8b():
     C_values = [1e-5, 1e-3, 1, 5, 10]
@@ -655,7 +666,7 @@ def q2_8c():
 # q2_4()
 # q2_5_7()
 # q2_6_7()
-q2_7()
+# q2_7()
 # q2_8a()
 # q2_8b()
 # q2_8c()
