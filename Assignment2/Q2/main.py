@@ -10,6 +10,7 @@ import time
 from sklearn.linear_model import SGDClassifier 
 import pandas as pd
 import seaborn as sns
+import shutil
 
 ENTRYNUMBER = 11596
 TEST_DIRECTORY_PATH = "../data/Q2/test/"
@@ -322,11 +323,15 @@ def q2_4():
 
 def q2_5_7():
     model = {}
+    lst_total = [i for i in range(TOTAL_CLASSES)]
+    dict_total = get_folder_images(TRAIN_DIRECTORY_PATH, lst_total)
+    flattened_images_total = {key: preprocess_images(dict_total[key]) for key in dict_total}
     for i in range(TOTAL_CLASSES):
         for j in range(i+1, TOTAL_CLASSES):
             lst = [i , j]
-            dict = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
-            flattened_images = {key: preprocess_images(dict[key]) for key in dict}
+            # dict = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
+            # flattened_images = {key: preprocess_images(dict[key]) for key in dict}
+            flattened_images = {key: flattened_images_total[key] for key in lst}
             name_to_key = {key: i for i, key in enumerate(flattened_images)}
             key_to_name = {i: key for i, key in enumerate(flattened_images)}
 
@@ -356,6 +361,7 @@ def q2_5_7():
             predictions[i, j] = model[i, j].predict(X)
             print(f"Predicted for {i} vs {j}")
 
+    del model
 
     votes = np.zeros((X.shape[0], TOTAL_CLASSES), dtype=int)
     # Corrected vectorized voting process for -1 and 1 predictions
@@ -396,11 +402,15 @@ def q2_5_7():
 
 def q2_6_7():
     model = {}
+    lst_total = [i for i in range(TOTAL_CLASSES)]
+    dict_total = get_folder_images(TRAIN_DIRECTORY_PATH, lst_total)
+    flattened_images_total = {key: preprocess_images(dict_total[key]) for key in dict_total}
     for i in range(TOTAL_CLASSES):
         for j in range(i+1, TOTAL_CLASSES):
             lst = [i , j]
-            dict = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
-            flattened_images = {key: preprocess_images(dict[key]) for key in dict}
+            # dict = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
+            # flattened_images = {key: preprocess_images(dict[key]) for key in dict}
+            flattened_images = {key: flattened_images_total[key] for key in lst}
             name_to_key = {key: i for i, key in enumerate(flattened_images)}
             key_to_name = {i: key for i, key in enumerate(flattened_images)}
 
@@ -430,6 +440,7 @@ def q2_6_7():
             predictions[i, j] = model[i, j].predict(X)
             print(f"Predicted for {i} vs {j}")
 
+    del model
 
     votes = np.zeros((X.shape[0], TOTAL_CLASSES), dtype=int)
     # Corrected vectorized voting process for -1 and 1 predictions
@@ -468,6 +479,45 @@ def q2_6_7():
     plt.ylabel("Actual")
     plt.title("Confusion Matrix")
     plt.savefig("q2_6_confusion_matrix.png")
+
+def q2_7():
+    qtype = ["q2_5", "q2_6"]
+    for q in qtype:
+        CSV_PATH = f"{q}_multiclass_predictions.csv"
+        IMAGE_FOLDER = TEST_DIRECTORY_PATH
+        OUTPUT_FOLDER = f"misclassified_samples_{q}"
+
+        # Create output directory if it doesn't exist
+        os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+        # Read CSV file
+        df = pd.read_csv(CSV_PATH)
+
+        # Filter misclassified images
+        misclassified_df = df[df["Misclassified"] == 1]
+
+        # Dictionary to store one example per (Ground Truth, Prediction) pair
+        selected_images = {}
+
+        for _, row in misclassified_df.iterrows():
+            true_label = row["Ground Truth"]
+            predicted_label = row["Predictions"]
+            filename = row["Filename"]
+
+            key = (true_label, predicted_label)
+
+            # Save only one image per misclassification type
+            if key not in selected_images:
+                selected_images[key] = filename
+                src_path = os.path.join(f"{IMAGE_FOLDER}{true_label}/", filename)
+                dst_path = os.path.join(OUTPUT_FOLDER, f"{true_label}_{predicted_label}_{filename}")
+
+                # Copy image to output folder
+                if os.path.exists(src_path):
+                    shutil.copy(src_path, dst_path)
+                    print(f"Saved misclassified image: {filename} ({true_label} → {predicted_label})")
+                else:
+                    print(f"Image not found: {src_path}")
 
 def q2_8a():
     C_values = [1e-5, 1e-3, 1, 5, 10]
@@ -603,8 +653,9 @@ def q2_8c():
 # q2_3acd()
 # q2_3b()
 # q2_4()
-q2_5_7()
-q2_6_7()
+# q2_5_7()
+# q2_6_7()
+q2_7()
 # q2_8a()
 # q2_8b()
 # q2_8c()
