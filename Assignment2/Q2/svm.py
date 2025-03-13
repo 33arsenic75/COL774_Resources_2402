@@ -82,7 +82,7 @@ class SupportVectorMachine:
         solution = cvxopt.solvers.qp(P = P, q =  q, G = G, h = h, A = A, b = b) 
         alphas = np.ravel(solution['x'])
         # # Extract support vectors
-        self.support_vector_indices = alphas > self.eps
+        self.support_vector_indices = alphas > (self.eps * self.C)
         self.alphas = alphas[self.support_vector_indices]
         self.support_vectors = X[self.support_vector_indices]
         self.support_vector_labels = self.y[self.support_vector_indices]

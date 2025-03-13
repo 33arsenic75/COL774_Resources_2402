@@ -14,8 +14,7 @@ import seaborn as sns
 ENTRYNUMBER = 11596
 TEST_DIRECTORY_PATH = "../data/Q2/test/"
 TRAIN_DIRECTORY_PATH = "../data/Q2/train/"
-TOTAL_CLASSES = 3
-SPLIT_RATIO = 0.8
+TOTAL_CLASSES = 11
 cv2.setLogLevel(0)
 
 def preprocess_images(images):
@@ -40,29 +39,35 @@ def plot_images(images, titles, cmap=None, q_num = "q2_1"):
     plt.draw()
     plt.savefig(f"support_vectors_{q_num}.png")
 
-def get_folder_images(path, lst, valid_extensions=(".jpg", ".png", ".jpeg", ".bmp")):
+def get_folder_images(path, lst, valid_extensions=(".jpg", ".png", ".jpeg", ".bmp"), names = False):
     cv2.setLogLevel(0)
     folders = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
     folders.sort()
     folder_images = {}
+    folder_filenames = {}
     for n in lst:
         try:
             folder_index = n % len(folders)
             folder_name = folders[folder_index]
             folder_path = os.path.join(path, folder_name)
             images = []
+            filenames = []
             for file in os.listdir(folder_path):
                 if file.lower().endswith(valid_extensions):  # Check for valid image extensions
                     img_path = os.path.join(folder_path, file)
                     img = cv2.imread(img_path)  # Read image
                     if img is not None:
                         images.append(img)
+                        filenames.append(file)
             
             folder_images[folder_name] = images
+            folder_filenames[folder_name] = filenames
         
         except IndexError:
             raise IndexError(f"Index {n} is out of bounds. There are only {len(folders)} folders.")
     
+    if names:
+        return folder_images, folder_filenames
     return folder_images
 
 def convert_to_X_y(flattened_images, name_to_key):
@@ -79,7 +84,6 @@ def convert_to_X_y(flattened_images, name_to_key):
         X.extend(flattened_images[key])
         y.extend([name_to_key_2[key]]*len(flattened_images[key]))
     return np.array(X), np.array(y)
-
 
 def train(lst):
     lst = [ (x%100)%11 for x in lst]
@@ -104,10 +108,11 @@ def q2_1():
     lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
     dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
     dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
-    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
-    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    flattened_images_train = {key: preprocess_images(dict_train[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict_test[key]) for key in dict_test}
     name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
     key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
+    print(name_to_key.keys())
 
     X_train, y_train = convert_to_X_y(flattened_images_train, name_to_key)
     X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
@@ -122,13 +127,22 @@ def q2_1():
     total_samples = len(y_train)
     percentage_support_vectors = (num_support_vectors / total_samples) * 100
     end_time = time.time()
+    weight_norm = np.linalg.norm(model.w)
+    recall = np.sum((predictions == 1) & (y_test == 1)) / np.sum(y_test == 1)
+    precision = np.sum((predictions == 1) & (y_test == 1)) / np.sum(predictions == 1)
+    f1_score = 2 * (precision * recall) / (precision + recall)
+    
     print("--"*20)
     print(f"Number of support vectors: {num_support_vectors}")
     print(f"Percentage of training samples that are support vectors: {percentage_support_vectors:.2f}%")
     print(f"Training accuracy: {accuracy:.2f}")
+    print(f"Recall: {recall:.2f}")
+    print(f"Precision: {precision:.2f}")
+    print(f"F1 Score: {f1_score:.2f}")
     print(f"Training time: {end_time - start_time:.2f} seconds")
-    # print(f"Weights: {model.w}")
-    # print(f"Bias: {model.b}")
+    print(f"Weights: {model.w}")
+    print(f"Weight norm: {weight_norm}")
+    print(f"Bias: {model.b}")
     print("--"*20)
     
     top_5_indices = np.argsort(-model.alphas)[:5]  # Get indices of top-5 largest alphas
@@ -136,6 +150,19 @@ def q2_1():
 
     top_5_images = [sv.reshape(100, 100, 3) for sv in top_5_support_vectors]
     plot_images(top_5_images, [f"Support Vector q2_1 {i+1}" for i in range(5)], q_num="q2_1")
+
+    weight_vector_image = model.w.reshape(100, 100, 3)
+
+    weight_min, weight_max = weight_vector_image.min(), weight_vector_image.max()
+    weight_vector_scaled = (weight_vector_image - weight_min) / (weight_max - weight_min) * 255
+    weight_vector_scaled = weight_vector_scaled.astype(np.uint8)  # Convert to 8-bit image
+
+    # Plot the scaled weight vector
+    plt.figure(figsize=(5, 5))
+    plt.imshow(weight_vector_scaled, cmap="gray")
+    plt.axis("off")
+    plt.title("Weight Vector Visualization (Scaled 0-255)")
+
     del model
 
 def q2_2():
@@ -143,8 +170,8 @@ def q2_2():
     lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
     dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
     dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
-    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
-    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    flattened_images_train = {key: preprocess_images(dict_train[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict_test[key]) for key in dict_test}
     name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
     key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
@@ -157,15 +184,22 @@ def q2_2():
     # Get the number of support vectors
     predictions = model.predict(X_test)
     accuracy = np.mean(predictions == y_test)  
-    total_samples = len(y_test)
+    total_samples = len(y_train)
     num_support_vectors = len(model.support_vectors)
     percentage_support_vectors = (num_support_vectors / total_samples) * 100
-    # Get the percentage of training samples that are support vectors
+    recall = np.sum((predictions == 1) & (y_test == 1)) / np.sum(y_test == 1)
+    precision = np.sum((predictions == 1) & (y_test == 1)) / np.sum(predictions == 1)
+    f1_score = 2 * (precision * recall) / (precision + recall)
     end_time = time.time()
     print("--"*20)
+    print(f"Number of support vectors: {num_support_vectors}")
     print(f"Percentage of training samples that are support vectors: {percentage_support_vectors:.2f}%")
     print(f"Training accuracy: {accuracy:.2f}")
+    print(f"Recall: {recall:.2f}")
+    print(f"Precision: {precision:.2f}")
+    print(f"F1 Score: {f1_score:.2f}")
     print(f"Training time: {end_time - start_time:.2f} seconds")
+    print(f"Bias: {model.b}")
     print("--"*20)
     top_5_indices = np.argsort(-model.alphas)[:5]  # Get indices of top-5 largest alphas
     top_5_support_vectors = model.support_vectors[top_5_indices]  # Extract corresponding support vectors
@@ -180,8 +214,8 @@ def q2_3acd():
     start_time = time.time()
     dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
     dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
-    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
-    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    flattened_images_train = {key: preprocess_images(dict_train[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict_test[key]) for key in dict_test}
     name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
     key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
@@ -193,8 +227,7 @@ def q2_3acd():
     predictions = model.predict(X_test)
     accuracy = np.mean(predictions == y_test)
     num_support_vectors = sum(model.n_support_)
-    support_vectors = model.support_vectors_
-    percentage_support_vectors = (np.sum(num_support_vectors) / len(y)) * 100
+    percentage_support_vectors = (np.sum(num_support_vectors) / len(y_train)) * 100
     end_time = time.time()
     print("--"*20)
     print("Linear Kernel")  
@@ -213,7 +246,7 @@ def q2_3acd():
     accuracy = np.mean(predictions == y_test)
     num_support_vectors = sum(model.n_support_)
     support_vectors = model.support_vectors_
-    percentage_support_vectors = (np.sum(num_support_vectors) / len(y)) * 100
+    percentage_support_vectors = (np.sum(num_support_vectors) / len(y_train)) * 100
     end_time = time.time()
     print("--"*20)
     print("Gaussian Kernel")  
@@ -229,8 +262,8 @@ def q2_3b():
 
     dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
     dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
-    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
-    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    flattened_images_train = {key: preprocess_images(dict_train[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict_test[key]) for key in dict_test}
     name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
     key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
@@ -262,8 +295,8 @@ def q2_4():
     lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
     dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
     dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
-    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
-    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    flattened_images_train = {key: preprocess_images(dict_train[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict_test[key]) for key in dict_test}
     name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
     key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
@@ -303,8 +336,9 @@ def q2_5_7():
             print(f"Trained model for {i} vs {j}")
     
     lst = [i for i in range(TOTAL_CLASSES)]
-    dict = get_folder_images(TEST_DIRECTORY_PATH, lst)
+    dict, dict_filenames = get_folder_images(TEST_DIRECTORY_PATH, lst, names=True)
     X, y = [], []
+    filenames = []
     flattened_images = {key: preprocess_images(dict[key]) for key in dict}
     name_to_key = {key: i for i, key in enumerate(flattened_images)}
     key_to_name = {i: key for i, key in enumerate(flattened_images)}
@@ -312,6 +346,7 @@ def q2_5_7():
     for key in flattened_images:
         X.extend(flattened_images[key])
         y.extend([name_to_key[key]]*len(flattened_images[key]))
+        filenames.extend(dict_filenames[key])
 
     X = np.array(X)
     y = np.array(y)
@@ -333,9 +368,16 @@ def q2_5_7():
     # Get final predictions
     final_predictions = np.argmax(votes, axis=1)
     accuracy_score = np.mean(final_predictions == y)
-    print(f"Accuracy: {accuracy_score}")
+    recall = np.sum((final_predictions == 1) & (y == 1)) / np.sum(y == 1)
+    precision = np.sum((final_predictions == 1) & (y == 1)) / np.sum(final_predictions == 1)
+    f1_score = 2 * (precision * recall) / (precision + recall)
+    print(f"Accuracy: {accuracy_score:.2f}")
+    print(f"Recall: {recall:.2f}")
+    print(f"Precision: {precision:.2f}")
+    print(f"F1 Score: {f1_score:.2f}")
     map_labels = np.vectorize(lambda k: key_to_name[k])
     df = pd.DataFrame({
+        'Filename': filenames,
         'Ground Truth': map_labels(y),
         'Predictions': map_labels(final_predictions),
         'Misclassified': (final_predictions != y).astype(int)
@@ -368,8 +410,9 @@ def q2_6_7():
             print(f"Trained model for {i} vs {j}")
     
     lst = [i for i in range(TOTAL_CLASSES)]
-    dict = get_folder_images(TEST_DIRECTORY_PATH, lst)
+    dict, dict_filenames = get_folder_images(TEST_DIRECTORY_PATH, lst, names=True)
     X, y = [], []
+    filenames = []
     flattened_images = {key: preprocess_images(dict[key]) for key in dict}
     name_to_key = {key: i for i, key in enumerate(flattened_images)}
     key_to_name = {i: key for i, key in enumerate(flattened_images)}
@@ -377,6 +420,7 @@ def q2_6_7():
     for key in flattened_images:
         X.extend(flattened_images[key])
         y.extend([name_to_key[key]]*len(flattened_images[key]))
+        filenames.extend(dict_filenames[key])
 
     X = np.array(X)
     y = np.array(y)
@@ -398,9 +442,17 @@ def q2_6_7():
     # Get final predictions
     final_predictions = np.argmax(votes, axis=1)
     accuracy_score = np.mean(final_predictions == y)
+    recall = np.sum((final_predictions == 1) & (y == 1)) / np.sum(y == 1)
+    precision = np.sum((final_predictions == 1) & (y == 1)) / np.sum(final_predictions == 1)
+    f1_score = 2 * (precision * recall) / (precision + recall)
+    print(f"Accuracy: {accuracy_score:.2f}")
+    print(f"Recall: {recall:.2f}")
+    print(f"Precision: {precision:.2f}")
+    print(f"F1 Score: {f1_score:.2f}")
     print(f"Accuracy: {accuracy_score}")
     map_labels = np.vectorize(lambda k: key_to_name[k])
     df = pd.DataFrame({
+        'Filename': filenames,
         'Ground Truth': map_labels(y),
         'Predictions': map_labels(final_predictions),
         'Misclassified': (final_predictions != y).astype(int)
@@ -423,8 +475,8 @@ def q2_8a():
     lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
     dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
     dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
-    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
-    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    flattened_images_train = {key: preprocess_images(dict_train[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict_test[key]) for key in dict_test}
     name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
     key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
@@ -440,7 +492,7 @@ def q2_8a():
 
     # Train the final model using the best C
     final_model = SVC(kernel='rbf', C=best_C, gamma=0.001)
-    final_model.fit(X_train, y_test)
+    final_model.fit(X_train, y_train)
 
     # Evaluate on test data
     test_accuracy = final_model.score(X_test, y_test)
@@ -452,8 +504,8 @@ def q2_8b():
     lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
     dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
     dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
-    flattened_images_train = {key: preprocess_images(dict[key]) for key in dict_train}
-    flattened_images_test = {key: preprocess_images(dict[key]) for key in dict_test}
+    flattened_images_train = {key: preprocess_images(dict_train[key]) for key in dict_train}
+    flattened_images_test = {key: preprocess_images(dict_test[key]) for key in dict_test}
     name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
     key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
@@ -545,21 +597,14 @@ def q2_8c():
 
 
 
-# dict = get_folder_images(DIRECTORY_PATH, [i for i in range(11)] )
-# flattened_images = {key: preprocess_images(dict[key]) for key in dict}
-# name_to_key = {key: i for i, key in enumerate(flattened_images)}
-# key_to_name = {i: key for i, key in enumerate(flattened_images)}
-
-# X, y = convert_to_X_y(flattened_images, name_to_key)
-# print(X.shape, y.shape)
 
 # q2_1()
 # q2_2()
 # q2_3acd()
 # q2_3b()
 # q2_4()
-# q2_5_7()
-# q2_6_7()
+q2_5_7()
+q2_6_7()
 # q2_8a()
 # q2_8b()
 # q2_8c()
