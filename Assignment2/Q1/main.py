@@ -251,10 +251,10 @@ def q1_9(df_train, df_test, smoothening = 1):
     print(f"Recall: {recall:.2%}")
     print(f"F1-score: {f1:.2%}")
     print("--"*20)
-    df_test.to_csv("q1_6b_test.csv", index=False)
-    df_train.to_csv("q1_6b_train.csv", index=False)
+    df_test.to_csv("q1_9_test.csv", index=False)
+    df_train.to_csv("q1_9_train.csv", index=False)
 
-    qnum = "1_6b"
+    qnum = "1_9"
     for cls in model.classes:
         log_word_freq = model.word_likelihoods[cls]  # Log-likelihoods P(w|C)
         
