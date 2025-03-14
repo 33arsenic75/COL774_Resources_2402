@@ -20,9 +20,10 @@ class SupportVectorMachine:
         self.support_vector_labels : np.array = None
         self.support_vector_indices : np.array = None
         self.eps : float = 1e-4
+        self.autograder : bool = True
         pass
         
-    def fit(self, X, y, kernel = 'linear', C = 1.0, gamma = 0.001, dump = False):
+    def fit(self, X, y, kernel = 'linear', C = 1.0, gamma = 0.001, dump = False, autograder = True):
         '''
         Learn the parameters from the given training data
         Classes are 0 or 1
@@ -43,6 +44,12 @@ class SupportVectorMachine:
             gamma: float
                 The gamma parameter for gaussian kernel, ignored for linear kernel
         '''
+        if autograder:
+            self.autograder = True
+            y = np.where(y == 0, -1, y)
+        else:
+            self.autograder = False
+
         self.X = X
         self.y = y
         self.kernel = kernel
@@ -118,6 +125,10 @@ class SupportVectorMachine:
             K = np.exp(-self.gamma * sq_dists)
             decision_values = np.sum(self.alphas * self.support_vector_labels * K, axis=1)
         
-        return np.sign(decision_values + self.b)  # Output is -1 or 1
+        y = np.sign(decision_values + self.b)  # Output is -1 or 1
+        if self.autograder:
+            y = np.where(y == -1, 0, y)
+        
+        return y
 
         

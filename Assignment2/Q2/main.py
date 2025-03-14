@@ -97,7 +97,7 @@ def train(lst):
     X, y = convert_to_X_y(flattened_images, name_to_key)
     # print(X.shape, y.shape)
     model = SupportVectorMachine()
-    model.fit(X, y)
+    model.fit(X, y, autograder=False)
 
     predictions = model.predict(X)
     accuracy = np.mean(predictions == y)    
@@ -119,7 +119,7 @@ def q2_1():
     X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
     # Train the model
     model = SupportVectorMachine()
-    model.fit(X_train, y_train)  # Assuming X_train and y_train are defined
+    model.fit(X_train, y_train, autograder=False)  # Assuming X_train and y_train are defined
     # Get the number of support vectors
     num_support_vectors = len(model.support_vectors)
     predictions = model.predict(X_test)
@@ -180,7 +180,7 @@ def q2_2():
     X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
     # Train the model
     model = SupportVectorMachine()
-    model.fit(X_train, y_train, kernel = 'gaussian', C = 1.0, gamma=0.001)  # Assuming X_train and y_train are defined
+    model.fit(X_train, y_train, kernel = 'gaussian', C = 1.0, gamma=0.001, autograder=False)  # Assuming X_train and y_train are defined
     # print(y[0:10])
     # Get the number of support vectors
     predictions = model.predict(X_test)
@@ -280,7 +280,7 @@ def q2_3b():
     del model
 
     model = SupportVectorMachine()
-    model.fit(X_test, y_test)  # Assuming X_train and y_train are defined
+    model.fit(X_test, y_test, autograder=False)  # Assuming X_train and y_train are defined
     weights_2 = [model.w]
     bias_2 = [model.b]
     # print(weights_2, bias_2)
@@ -337,7 +337,7 @@ def q2_5_7():
 
             X, y = convert_to_X_y(flattened_images, name_to_key)
             model[i, j] = SupportVectorMachine()
-            model[i, j].fit(X, y, kernel = 'gaussian', C = 1.0, gamma=0.001)
+            model[i, j].fit(X, y, kernel = 'gaussian', C = 1.0, gamma=0.001, autograder = False)
             print(f"Trained model for {i} vs {j}")
     
     lst = [i for i in range(TOTAL_CLASSES)]
@@ -519,141 +519,89 @@ def q2_7():
                 else:
                     print(f"Image not found: {src_path}")
 
-def q2_8a():
+def q2_8():
     C_values = [1e-5, 1e-3, 1, 5, 10]
     KFOLD = 5
-    lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
-    dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
-    dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
-    flattened_images_train = {key: preprocess_images(dict_train[key]) for key in dict_train}
-    flattened_images_test = {key: preprocess_images(dict_test[key]) for key in dict_test}
+    # Prepare data for training
+
+    lst_total = [i for i in range(TOTAL_CLASSES)]
+    dict_total = get_folder_images(TRAIN_DIRECTORY_PATH, lst_total)
+    flattened_images_train = {key: preprocess_images(dict_total[key]) for key in dict_total}
+
     name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
     key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
 
-    X_train, y_train = convert_to_X_y(flattened_images_train, name_to_key)
-    X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
+    X_train = []
+    y_train = []
 
-    model = SVC(kernel='rbf', gamma=0.001)
-    grid_search = GridSearchCV(model, param_grid={'C': C_values}, cv=KFOLD, scoring='accuracy', n_jobs=-1)
-    grid_search.fit(X_train, y_train)
+    for key in flattened_images_train:
+        X_train.extend(flattened_images_train[key])
+        y_train.extend([name_to_key[key]]*len(flattened_images_train[key]))
 
-    best_C = grid_search.best_params_['C']
-    print(f"Optimal C value: {best_C}")
+    X_train, y_train = np.array(X_train), np.array(y_train)
 
-    # Train the final model using the best C
+    # Perform cross-validation for each C value
+    cv_accuracies = {}
+    for C in C_values:
+        model = SVC(kernel='rbf', C=C, gamma=0.001)
+        scores = cross_val_score(model, X_train, y_train, cv=KFOLD, scoring='accuracy')
+        cv_accuracies[C] = np.mean(scores)
+        print(f"Cross-validation accuracy for C={C}: {cv_accuracies[C]:.4f}")
+
+    # Select best C value
+    best_C = max(cv_accuracies, key=cv_accuracies.get)
+    print(f"Best C value: {best_C}")
+
+    # Train final model using best C
     final_model = SVC(kernel='rbf', C=best_C, gamma=0.001)
     final_model.fit(X_train, y_train)
 
+    # Load test data
+    dict_test, dict_filenames = get_folder_images(TEST_DIRECTORY_PATH, lst_total, names=True)
+    flattened_images_test = {key: preprocess_images(dict_test[key]) for key in dict_test}
+
+    X_test = []
+    y_test = []
+
+    for key in flattened_images_test:
+        X_test.extend(flattened_images_test[key])
+        y_test.extend([name_to_key[key]]*len(flattened_images_test[key]))
+
+    X_test, y_test = np.array(X_test), np.array(y_test)
+
+    # Make predictions
     y_pred = final_model.predict(X_test)
+
+    # Compute evaluation metrics
     accuracy = accuracy_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred, average='weighted')  # Change 'weighted' based on class balance
+    recall = recall_score(y_test, y_pred, average='weighted')
     precision = precision_score(y_test, y_pred, average='weighted')
     f1 = f1_score(y_test, y_pred, average='weighted')
 
+    test_accuracies = [accuracy_score(y_test, SVC(kernel='rbf', C=C, gamma=0.001).fit(X_train, y_train).predict(X_test)) for C in C_values]
+    
     # Print results
-    print("--"*20)
+    print("--" * 20)
     print(f"Test Accuracy: {accuracy:.4f}")
     print(f"Recall: {recall:.4f}")
     print(f"Precision: {precision:.4f}")
     print(f"F1 Score: {f1:.4f}")
-    print("--"*20)
-    
+    print("--" * 20)
 
-def q2_8b():
-    C_values = [1e-5, 1e-3, 1, 5, 10]
-    KFOLD = 5
-    lst = [ENTRYNUMBER, ENTRYNUMBER + 1]
-    dict_train = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
-    dict_test = get_folder_images(TEST_DIRECTORY_PATH, lst)
-    flattened_images_train = {key: preprocess_images(dict_train[key]) for key in dict_train}
-    flattened_images_test = {key: preprocess_images(dict_test[key]) for key in dict_test}
-    name_to_key = {key: i for i, key in enumerate(flattened_images_train)}
-    key_to_name = {i: key for i, key in enumerate(flattened_images_train)}
-
-    X_train, y_train = convert_to_X_y(flattened_images_train, name_to_key)
-    X_test, y_test = convert_to_X_y(flattened_images_test, name_to_key)
-
-    cv_accuracies = []
-    test_accuracies = []
-
-    # Loop through each C value
+    # Print cross-validation results
     for C in C_values:
-        # Train SVM with current C
-        svm_model = SVC(kernel='rbf', C=C, gamma=0.001)
-        
-        # Perform 5-fold cross-validation and store mean accuracy
-        cv_acc = np.mean(cross_val_score(svm_model, X_train, y_train, cv=KFOLD, scoring='accuracy'))
-        cv_accuracies.append(float(cv_acc))
+        print(f"Mean cross-validation accuracy for C={C}: {cv_accuracies[C]:.4f}")
 
-        # Train model on full training set and evaluate on test set
-        svm_model.fit(X_train, y_train)
-        test_acc = svm_model.score(X_test, y_test)
-        test_accuracies.append(test_acc)
-
-
-    plt.figure(figsize=(8, 5))
-    plt.plot(C_values, cv_accuracies, label="5-Fold Cross-Validation Accuracy", marker='o')
-    plt.plot(C_values, test_accuracies, label="Test Accuracy", marker='s')
-    # Log scale for better visualization
+    plt.figure(figsize=(8, 6))
+    plt.plot(C_values, list(cv_accuracies.values()), marker='o', label='5-Fold CV Accuracy')
+    plt.plot(C_values, test_accuracies, marker='s', label='Test Accuracy')
     plt.xscale('log')
-    plt.xlabel("C Value (Log Scale)")
-    plt.ylabel("Accuracy")
-    plt.title("Cross-Validation vs. Test Accuracy for SVM (RBF Kernel)")
+    plt.xlabel('C values (log scale)')
+    plt.ylabel('Accuracy')
+    plt.title('Cross-validation vs Test Accuracy')
     plt.legend()
     plt.grid(True)
-    plt.savefig("q2_8b_plot.png")
-    # Find the best C based on cross-validation accuracy
-    best_C = C_values[np.argmax(cv_accuracies)]
-    print(f"Best C based on 5-fold Cross-Validation: {best_C}")
-
-def q2_8c():
-    model = {}
-    BEST_C = 5.0
-    for i in range(TOTAL_CLASSES):
-        for j in range(i+1, TOTAL_CLASSES):
-            lst = [i , j]
-            dict = get_folder_images(TRAIN_DIRECTORY_PATH, lst)
-            flattened_images = {key: preprocess_images(dict[key]) for key in dict}
-            name_to_key = {key: i for i, key in enumerate(flattened_images)}
-            key_to_name = {i: key for i, key in enumerate(flattened_images)}
-
-            X, y = convert_to_X_y(flattened_images, name_to_key)
-            model[i, j] = SVC(kernel='rbf', C = BEST_C, gamma=0.001)   
-            model[i, j].fit(X, y)
-            print(f"Trained model for {i} vs {j}")
-    
-    lst = [i for i in range(TOTAL_CLASSES)]
-    dict = get_folder_images(TEST_DIRECTORY_PATH, lst)
-    X, y = [], []
-    flattened_images = {key: preprocess_images(dict[key]) for key in dict}
-    name_to_key = {key: i for i, key in enumerate(flattened_images)}
-    key_to_name = {i: key for i, key in enumerate(flattened_images)}
-
-    for key in flattened_images:
-        X.extend(flattened_images[key])
-        y.extend([name_to_key[key]]*len(flattened_images[key]))
-
-    X = np.array(X)
-    y = np.array(y)
-    predictions = {}
-    for i in range(TOTAL_CLASSES):
-        for j in range(i+1, TOTAL_CLASSES):
-            predictions[i, j] = model[i, j].predict(X)
-            print(f"Predicted for {i} vs {j}")
-
-
-    votes = np.zeros((X.shape[0], TOTAL_CLASSES), dtype=int)
-    # Corrected vectorized voting process for -1 and 1 predictions
-    for j in range(TOTAL_CLASSES):
-        for k in range(j + 1, TOTAL_CLASSES):
-            mask = predictions[j, k] == 1  # Boolean mask where class k is predicted
-            votes[:, k] += mask  # Increase votes for class k when predicted
-            votes[:, j] += ~mask  # Increase votes for class j when not predicted (bitwise NOT is incorrect for -1, so we use direct logic)
-
-    # Get final predictions
-    final_predictions = np.argmax(votes, axis=1)
-    accuracy_score = np.mean(final_predictions == y)
-    print(f"Accuracy: {accuracy_score}")
+    plt.savefig("q2_8_accuracy.png")
 
 
 
@@ -667,6 +615,4 @@ def q2_8c():
 # q2_5_7()
 # q2_6_7()
 # q2_7()
-# q2_8a()
-# q2_8b()
-# q2_8c()
+q2_8()
