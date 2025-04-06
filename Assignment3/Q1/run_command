@@ -1,0 +1,1 @@
+python decision_tree.py ../data/Q1/train.csv ../data/Q1/valid.csv ../data/Q1/test.csv . a
