@@ -1,4 +1,4 @@
-from nn import *
+from Assignment3.Q2.nn import *
 import numpy as np
 from sklearn.model_selection import train_test_split
 from dataset import *
@@ -194,4 +194,75 @@ def q2_6():
 # q2_3()
 # q2_4()
 # q2_5()
-q2_6()
+# q2_6()
+
+
+import numpy as np
+
+def generate_high_dim_xor_data(n_samples=1000, input_dim=100, output_dim=10, noise_std=0.1, seed=None):
+    if seed is not None:
+        np.random.seed(seed)
+
+    # Binary input features (0 or 1)
+    X = np.random.randint(0, 2, size=(n_samples, input_dim)).astype(np.float32)
+
+    # Labels: Each output bit is an XOR of a random subset of input bits
+    y = np.zeros((n_samples, output_dim), dtype=np.float32)
+    for i in range(output_dim):
+        # Randomly choose input indices to XOR for this output
+        indices = np.random.choice(input_dim, size=np.random.randint(2, 10), replace=False)
+        y[:, i] = np.sum(X[:, indices], axis=1) % 2  # XOR by sum mod 2
+
+    # Optional: add noise to X
+    X_noisy = X + np.random.normal(0, noise_std, X.shape)
+
+    return X_noisy, y
+
+# X_train, y_train = generate_high_dim_xor_data(n_samples=1000, input_dim=100, output_dim=10, noise_std=0.05, seed=42)
+# X_test, y_test = generate_high_dim_xor_data(n_samples=1000, input_dim=100, output_dim=10, noise_std=0.05, seed=42)
+
+r = 43
+X_train = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+y_train = np.array([[0], [1], [1], [0]])
+X_train, y_train, y_train_raw = get_train_data(NUM_CLASSES=r)
+X_test, y_test, y_test_raw = get_test_data(NUM_CLASSES=r)
+
+M = 32
+input_units = X_train.shape[1]
+output_units = y_train.shape[1]
+learning_rate = 0.01
+# hidden = [100]*5
+hidden = [512, 256, 128, 64]
+activation = 'relu'
+
+params = {
+    "input_units": input_units,
+    "shape": hidden,
+    "output_units": output_units,
+    "learning_rate": learning_rate,
+    "batch_size": M,
+    "max_epoch": 10,
+    "max_error_diff": 1e-10,
+    "tolerance": 1e-10,
+    "activation": activation
+}
+nn = NeuralNetwork(params)
+print(nn)
+start_time = time.time()
+nn.fit(X_train, y_train, debug=False)
+end_time = time.time()
+time_taken = end_time - start_time
+print("[*] Time taken: {}".format(time_taken))
+acc = nn.score(X_train, y_train)
+
+y_pred, y_pred_raw = nn.predict(X_test)
+# print(y_pred[0])
+# print(y_pred_raw[0])
+# acc1 = nn.score(X_test, y_test)
+# print("[*] Test Accuracy: {}".format(acc1))
+
+print("[*] Train Accuracy: {}".format(acc))
+acc1 = nn.score(X_test, y_test)
+print("[*] Test Accuracy: {}".format(acc1))
+_, y_pred = nn.predict(X_test)
+print(np.unique(y_pred))

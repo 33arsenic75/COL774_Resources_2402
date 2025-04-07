@@ -15,7 +15,8 @@ def load_gtsrb_train_data(root_dir, img_size=None):
     X = []
     y = []
 
-    for class_id in os.listdir(root_dir):
+    for class_id in sorted(os.listdir(root_dir)):
+        # print(class_id)
         class_path = os.path.join(root_dir, class_id)
         if not os.path.isdir(class_path):
             continue
@@ -37,7 +38,7 @@ def load_gtsrb_test_from_csv(csv_path, images_dir, img_size=None):
     df = pd.read_csv(csv_path)
     X = []
     y = []
-
+    name = []
     for _, row in df.iterrows():
         img_filename = row['image']
         img_path = os.path.join(images_dir, img_filename)
@@ -47,6 +48,7 @@ def load_gtsrb_test_from_csv(csv_path, images_dir, img_size=None):
             if img_size:
                 img = img.resize(img_size)
             img_array = np.array(img).flatten()  # shape: (2352,)
+            name.append(img_path)
             X.append(img_array)
             y.append(int(img_label))
         except Exception as e:
@@ -58,14 +60,19 @@ def load_gtsrb_test_from_csv(csv_path, images_dir, img_size=None):
 def get_train_data(NUM_CLASSES=43):
     # Load the training data
     X_train, y_train_raw = load_gtsrb_train_data(DATA_PATH + "/train/")
+    X_train = X_train.astype(np.float32) / 255.0
+    y_train_raw = np.array(y_train_raw)
     y_train = one_hot_encode(y_train_raw, num_classes=NUM_CLASSES)
-    return X_train, y_train
+    return X_train, y_train, y_train_raw
 
 def get_test_data(NUM_CLASSES=43):
     csv_path = DATA_PATH + "/test_labels.csv"
     images_dir = DATA_PATH + "/test"
     X_test, y_test_raw = load_gtsrb_test_from_csv(csv_path, images_dir)
+    X_test = X_test.astype(np.float32) / 255.0
+
     y_test_raw = np.array(y_test_raw)
     y_test = one_hot_encode(y_test_raw, num_classes=NUM_CLASSES)
     return X_test, y_test, y_test_raw
     
+
