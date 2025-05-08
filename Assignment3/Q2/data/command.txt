@@ -1,4 +1,0 @@
-python neural_network.py <train_data_path> <test_data_path>
-<output_folder_path> <question_part>
-
-python neural_network.py "../data/Q2/Traffic sign board/train/"  "../data/Q2/Traffic sign board/test/" . b
