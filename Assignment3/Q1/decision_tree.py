@@ -273,7 +273,7 @@ def q1_d2_old():
 
 
 def q1_e_old():
-    X_train, y_train, X_val, y_val, X_test, y_test = q5_data()
+    X_train, y_train, X_val, y_val, X_test, y_test = q2_data_old()
     
     n_estimators = [50, 150, 250, 350]
     max_features = [0.1, 0.3, 0.5, 0.7, 1.0]
@@ -392,7 +392,7 @@ if __name__ == '__main__':
     if len(sys.argv) != 6:
         print("Usage: python decision_tree.py <train_data_path> <validation_data_path> <test_data_path> <output_folder_path> <question_part>")
         sys.exit(1)
-
+    
     train_data_path = str(sys.argv[1])
     val_data_path = str(sys.argv[2])
     test_data_path = str(sys.argv[3])

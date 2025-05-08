@@ -61,9 +61,9 @@ def get_train_data(NUM_CLASSES=43):
     # Load the training data
     X_train, y_train_raw = load_gtsrb_train_data(DATA_PATH + "/train/")
     X_train = X_train.astype(np.float32) / 255.0
-    y_train_raw = np.array(y_train_raw)
-    y_train = one_hot_encode(y_train_raw, num_classes=NUM_CLASSES)
-    return X_train, y_train, y_train_raw
+    y_train = np.array(y_train_raw)
+    # y_train = one_hot_encode(y_train_raw, num_classes=NUM_CLASSES)
+    return X_train, y_train
 
 def get_test_data(NUM_CLASSES=43):
     csv_path = DATA_PATH + "/test_labels.csv"
@@ -71,8 +71,8 @@ def get_test_data(NUM_CLASSES=43):
     X_test, y_test_raw = load_gtsrb_test_from_csv(csv_path, images_dir)
     X_test = X_test.astype(np.float32) / 255.0
 
-    y_test_raw = np.array(y_test_raw)
-    y_test = one_hot_encode(y_test_raw, num_classes=NUM_CLASSES)
-    return X_test, y_test, y_test_raw
+    y_test = np.array(y_test_raw)
+    # y_test = one_hot_encode(y_test_raw, num_classes=NUM_CLASSES)
+    return X_test, y_test
     
 
