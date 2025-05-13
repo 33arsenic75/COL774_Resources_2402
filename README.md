@@ -22,8 +22,8 @@ This repository contains various course materials including assignments, quizzes
 	Mine:- 86.41	
 	Mean:- 82.90	 
 4. Assignment4:
-	Mine:- 
-	Mean:- 
+	Mine:- 88.93
+	Mean:- 69.12
 5. Minor:
 	Max:-  32.5/40
 	Mine:- 31.8/40
@@ -40,13 +40,11 @@ Also used "KKT Theory.pdf" to understand how dual version of a optimization prob
 
 ## Grading
 A  :- 70+
-A- :- 60+
-B  :- 55+
-B- :- 50+
+A- :- 
+B  :- 
+B- :- 
 
 Audit:- B-
-
-My Course Total:- 
 
 ## Course BreakUp
 Assignments:- 7 + 9 + 9 + 10 = 35%.
