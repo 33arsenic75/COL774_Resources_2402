@@ -40,9 +40,6 @@ Also used "KKT Theory.pdf" to understand how dual version of a optimization prob
 
 ## Grading
 A  :- 70+
-A- :- 
-B  :- 
-B- :- 
 
 Audit:- B-
 
