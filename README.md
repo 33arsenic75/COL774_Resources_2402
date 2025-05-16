@@ -29,9 +29,9 @@ This repository contains various course materials including assignments, quizzes
 	Mine:- 31.8/40
 	Mean:- 17.04/40
 6. Major:
-	Max:- 30.5/40
-	Mine:- 30.5/40
-	Mean:- 14.32/40
+	Max:- 30.5/48
+	Mine:- 30.5/48
+	Mean:- 14.32/48
 
 ## Suggestions
 Before starting the course, do read "Differential Vector Calculus.pdf" from Resources. Will decrease the load for minor and major exam very very much. Getting the intuition for vector calculus is enough. No need to focus on proofs.
