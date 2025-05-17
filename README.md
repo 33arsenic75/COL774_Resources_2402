@@ -37,6 +37,7 @@ This repository contains various course materials including assignments, quizzes
 Before starting the course, do read "Differential Vector Calculus.pdf" from Resources. Will decrease the load for minor and major exam very very much. Getting the intuition for vector calculus is enough. No need to focus on proofs.
 Follow Andrew NGs notes. Sir does it. Very good and relevant to exams.
 Also used "KKT Theory.pdf" to understand how dual version of a optimization problem works. Good resource. Will help in SVMs.
+And we dont get Major Answer sheets in return.
 
 ## Grading
 A  :- 70+
